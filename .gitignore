@@ -156,6 +156,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+lighthr-env/
+lighthr-env
 
 # Spyder project settings
 .spyderproject
