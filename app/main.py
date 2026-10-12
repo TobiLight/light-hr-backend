@@ -3,7 +3,6 @@
 # Author: Oluwatobiloba Light Agunloye
 """LIGHT HRMS ENTRY POINT"""
 
-
 from bootstrap import create_app
 
 app = create_app()

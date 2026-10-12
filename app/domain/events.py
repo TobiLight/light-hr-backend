@@ -1,8 +1,9 @@
 # File: app/domain/events.py
 # Author: Oluwatobiloba Light Agunloye
 """Framework-independent domain-event contracts."""
+
 from dataclasses import dataclass
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 

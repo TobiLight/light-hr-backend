@@ -3,7 +3,6 @@
 # Author: Oluwatobiloba Light Agunloye
 """Light HRMS Config"""
 
-
 import logging
 from functools import lru_cache
 from typing import Any, Literal
