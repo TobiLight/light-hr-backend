@@ -10,3 +10,5 @@ class ApplicationError(Exception):
 
 class ConfigurationError(ApplicationError):
     """Raised when application configuration is invalid for a requested operation."""
+
+

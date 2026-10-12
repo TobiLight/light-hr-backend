@@ -25,7 +25,7 @@ class Configs(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "FastAPI DDD Starter"
+    app_name: str = "LIGHT_HRMS BACKEND "
     app_env: Literal["dev", "test", "staging", "production"] = "dev"
     debug: bool = False
     api_v1_prefix: str = "/api/v1"
