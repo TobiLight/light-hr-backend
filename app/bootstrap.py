@@ -7,12 +7,10 @@ from collections.abc import AsyncIterator
 
 from fastapi import FastAPI
 
-from core.config import get_settings
-from core.logging import configure_logging, get_logger
-
-# from infrastructure.persistence.database import dispose_database
-from infrastructure.persistence.database import dispose_database
-from presentation.http.api import api_router
+from app.core.config import get_settings
+from app.core.logging import configure_logging, get_logger
+from app.infrastructure.persistence.database import dispose_database
+from app.presentation.http.api import api_router
 
 
 def create_app() -> FastAPI:
