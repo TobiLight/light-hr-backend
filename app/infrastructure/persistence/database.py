@@ -22,7 +22,12 @@ def get_engine():
     return create_async_engine(
         settings.database_url.get_secret_value(),
         pool_pre_ping=True,
-        echo=settings.debug,
+        # echo emits SQL with bound parameters. On an HR system those literals
+        # are names, emails, salaries and national IDs, so it is gated on the
+        # environment as well as debug -- T4 already makes debug=True outside
+        # dev a validation error, so this is belt-and-braces if that is ever
+        # relaxed.
+        echo=settings.debug and settings.app_env == "dev",
     )
 
 
