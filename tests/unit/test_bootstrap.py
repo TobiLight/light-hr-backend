@@ -7,10 +7,9 @@ this file exists rather than a single parametrized assertion.
 """
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.bootstrap import create_app
 from app.core.config import get_settings
+from fastapi.testclient import TestClient
 
 DOCS_PATHS = ("/docs", "/redoc", "/openapi.json")
 NON_PRODUCTION = ("dev", "test", "staging")

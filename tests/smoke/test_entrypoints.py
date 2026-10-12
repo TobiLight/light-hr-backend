@@ -28,13 +28,23 @@ PROJECT_MODULES = frozenset(
     }
 )
 SCANNED_ROOTS = ("app", "tests")
+TEST_DSN = "postgresql+asyncpg://app:app@localhost:5432/app"
 
 
 def test_entrypoints_import_without_pythonpath():
+    # app.main constructs create_app() at import time, and create_app reads
+    # settings, which since T7 have no default. A DSN is therefore part of a
+    # valid boot environment; its absence is asserted separately in
+    # test_config.py::test_database_url_required. PYTHONPATH stays empty so
+    # this still observes exactly what uvicorn observes.
     result = subprocess.run(
         [sys.executable, "-c", "import app.main"],
         cwd=REPO_ROOT,
-        env={"PATH": "/usr/bin:/bin", "PYTHONPATH": ""},
+        env={
+            "PATH": "/usr/bin:/bin",
+            "PYTHONPATH": "",
+            "DATABASE_URL": TEST_DSN,
+        },
         capture_output=True,
         text=True,
     )

@@ -59,3 +59,35 @@ def test_debug_allowed_in_dev():
 @pytest.mark.parametrize("env", ["dev", "test", "staging", "production"])
 def test_debug_false_always_allowed(env):
     assert Configs(debug=False, app_env=env).debug is False
+
+
+def test_database_url_required(monkeypatch):
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+
+    with pytest.raises(ValidationError) as exc_info:
+        Configs()
+
+    assert "database_url" in str(exc_info.value)
+
+
+SENTINEL_PASSWORD = "sup3r-s3cret-dsn-p4ss"
+
+
+def test_database_url_masked_in_dump(monkeypatch):
+    monkeypatch.setenv(
+        "DATABASE_URL",
+        f"postgresql+asyncpg://app:{SENTINEL_PASSWORD}@localhost:5432/app",
+    )
+    settings = Configs()
+
+    rendered = (
+        repr(settings),
+        str(settings),
+        str(settings.model_dump()),
+        settings.model_dump_json(),
+        repr(settings.model_dump()),
+        str(settings.model_dump_json()),
+    )
+
+    for form in rendered:
+        assert SENTINEL_PASSWORD not in form

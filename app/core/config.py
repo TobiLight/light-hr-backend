@@ -8,7 +8,7 @@ from functools import lru_cache
 from typing import Any, Literal
 
 from dotenv import load_dotenv
-from pydantic import Field, field_validator, model_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv()
@@ -29,10 +29,11 @@ class Configs(BaseSettings):
     app_env: Literal["dev", "test", "staging", "production"] = "dev"
     debug: bool = False
     api_v1_prefix: str = "/api/v1"
-    database_url: str = Field(
-        default="postgresql+asyncpg://app:app@localhost:5432/app",
-        repr=False,
-    )
+    # Required on purpose: a missing value must fail at boot rather than
+    # silently connecting to localhost. SecretStr because the DSN carries the
+    # database password -- Field(repr=False) only hid it from repr(), while
+    # model_dump()/model_dump_json() returned it in plaintext.
+    database_url: SecretStr
     log_level: str = "INFO"
 
     @field_validator("log_level", mode="before")
