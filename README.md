@@ -113,26 +113,20 @@ git clone git@github.com:TobiLight/light-hr-backend.git
 cd light-hr-backend
 ```
 
-2. Create and activate a virtual environment:
+2. Install [uv](https://docs.astral.sh/uv/) and sync the project:
 
-On macOS/Linux:
+`uv sync` is the only supported install path. The project declares no
+`[build-system]`, so `pip install -e .` cannot work.
+
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+uv sync
 ```
 
-On Windows (PowerShell):
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-```
+This creates `.venv/` and installs runtime and development dependencies
+(including the test runner). Run subsequent commands through `uv run ...` or
+activate the environment with `source .venv/bin/activate`.
 
-3. Install project dependencies:
-```bash
-pip install -e .
-```
-
-4. Configure your environment file:
+3. Configure your environment file:
 ```bash
 cp .env.example .env
 ```
