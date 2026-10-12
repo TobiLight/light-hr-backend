@@ -2,7 +2,7 @@
 # Author: Oluwatobiloba Light Agunloye
 """Framework-independent domain-event contracts."""
 from dataclasses import dataclass
-from datetime import datetime, timezone, UTC
+from datetime import UTC, datetime, timezone
 from uuid import UUID, uuid4
 
 

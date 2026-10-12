@@ -4,11 +4,12 @@
 """Light HRMS Config"""
 
 
+import logging
 from functools import lru_cache
-from typing import Literal
+from typing import Any, Literal
 
 from dotenv import load_dotenv
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv()
@@ -34,6 +35,22 @@ class Configs(BaseSettings):
         repr=False,
     )
     log_level: str = "INFO"
+
+    @field_validator("log_level", mode="before")
+    @classmethod
+    def validate_log_level(cls, value: Any) -> Any:
+        """Normalize and reject log levels the standard library cannot resolve."""
+        if not isinstance(value, str):
+            return value
+
+        normalized = value.strip().upper()
+        valid_levels = logging.getLevelNamesMapping()
+        if normalized not in valid_levels:
+            allowed = ", ".join(sorted(valid_levels))
+            raise ValueError(
+                f"LOG_LEVEL {value!r} is not a valid logging level. Valid levels: {allowed}"
+            )
+        return normalized
 
 
 @lru_cache

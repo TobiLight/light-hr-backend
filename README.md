@@ -83,7 +83,7 @@ The application reads configuration values directly from the host environment or
 | `DEBUG` | boolean | `false` | Enables verbose error handling and development tooling. |
 | `API_V1_PREFIX` | string | `/api/v1` | URL prefix prepended to all version 1 endpoints. |
 | `DATABASE_URL` | string | `postgresql+asyncpg://app:app@localhost:5432/app` | Asynchronous database connection string. |
-| `LOG_LEVEL` | string | `INFO` | Minimum severity level for structured logger output. |
+| `LOG_LEVEL` | string | `INFO` | Minimum severity level for structured logger output. Accepts `CRITICAL`, `DEBUG`, `ERROR`, `FATAL`, `INFO`, `NOTSET`, `WARN`, or `WARNING`, case-insensitive. An unrecognized value fails at startup. |
 
 ### Setting Environment Variables at the System Level
 
