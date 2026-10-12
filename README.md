@@ -1,5 +1,7 @@
 # Light HRMS Backend
 
+[![CI](https://github.com/TobiLight/light-hr-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/TobiLight/light-hr-backend/actions/workflows/ci.yml)
+
 ## Overview
 
 Organizations often struggle to coordinate personnel workflows and employee lifecycle records when their internal tooling is fragmented across different services. Light HRMS Backend provides a unified server foundation that tracks personnel activity, processes domain events, and exposes dependable operations for company systems. It gives teams a structured, predictable backbone for managing day-to-day organizational operations without unnecessary overhead.
@@ -169,13 +171,17 @@ http://localhost:8000/docs
 
 Execute the test suite using PyTest:
 ```bash
-pytest
+uv run pytest
 ```
 
 Run code quality and style checks using Ruff:
 ```bash
-ruff check .
+uv run ruff check .
+uv run ruff format --check .
 ```
+
+Both run in CI on every push and pull request to `main`; see
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ## API Documentation
 
