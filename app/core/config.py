@@ -8,7 +8,7 @@ from functools import lru_cache
 from typing import Any, Literal
 
 from dotenv import load_dotenv
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv()
@@ -50,6 +50,22 @@ class Configs(BaseSettings):
                 f"LOG_LEVEL {value!r} is not a valid logging level. Valid levels: {allowed}"
             )
         return normalized
+
+    @model_validator(mode="after")
+    def reject_debug_outside_dev(self) -> "Configs":
+        """Refuse debug=True anywhere but development.
+
+        With debug on, an unhandled exception renders the full traceback to the
+        client -- absolute source paths, exception class and message -- which
+        carries internal hostnames and ports.
+        """
+        if self.debug and self.app_env != "dev":
+            raise ValueError(
+                f"debug=True requires app_env='dev', got app_env={self.app_env!r}. "
+                "A debug-enabled app returns tracebacks and absolute source "
+                "paths to the client."
+            )
+        return self
 
 
 @lru_cache
