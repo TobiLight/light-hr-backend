@@ -1,0 +1,46 @@
+# Local PostgreSQL for development. The application runs on the host via
+# `uv run`, so the DSN in .env keeps pointing at localhost:5432.
+#
+# Credentials and the database name are local-development only. If you change
+# them here, change DATABASE_URL in .env to match -- the two must agree.
+name: light-hr-backend
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: lighthr-postgres
+    restart: unless-stopped
+
+    # POSTGRES_USER also creates the role, and POSTGRES_DB creates the
+    # database owned by it, on first start of an empty volume.
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: light_hrms_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - lighthr_pgdata:/var/lib/postgresql/data
+
+    # Wait on this rather than a fixed sleep, so dependent steps never race
+    # the entrypoint's initialisation. `psql` rather than `pg_isready`, which
+    # reports success even when the named database does not exist, so a
+    # POSTGRES_DB that disagrees with DATABASE_URL fails here instead of at the
+    # first query.
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U app -d light_hrms_db -c 'select 1' > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+    # The stock 10s can cut a checkpoint short on shutdown.
+    stop_grace_period: 30s
+
+volumes:
+  # Pinned name so the volume is shared with, and survives, a container that
+  # was started without Compose.
+  lighthr_pgdata:
+    name: lighthr_pgdata

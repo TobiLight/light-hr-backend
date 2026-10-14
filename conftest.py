@@ -23,5 +23,5 @@ if str(REPO_ROOT) not in sys.path:
 # required when this is absent.
 os.environ.setdefault(
     "DATABASE_URL",
-    "postgresql+asyncpg://app:app@localhost:5432/app",
+    "postgresql+asyncpg://app:app@localhost:5432/light_hrms_db",
 )
