@@ -12,6 +12,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+  "import-linter>=2.0,<3.0",
+  "mypy>=1.10,<2.0",
   "pytest>=9.0.3,<10.0",
   "pytest-asyncio>=1.0,<2.0",
   "pytest-cov>=6.0,<7.0",
@@ -28,3 +30,32 @@ src = ["app", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.importlinter]
+root_packages = ["app"]
+
+[[tool.importlinter.contracts]]
+name = "domain must not import infrastructure or presentation"
+type = "forbidden"
+source_modules = ["app.domain"]
+forbidden_modules = ["app.infrastructure", "app.presentation"]
+
+[[tool.importlinter.contracts]]
+name = "infrastructure does not import presentation"
+type = "forbidden"
+source_modules = ["app.infrastructure"]
+forbidden_modules = ["app.presentation"]
+
+[[tool.importlinter.contracts]]
+name = "domain depends on stdlib only"
+type = "forbidden"
+source_modules = ["app.domain"]
+forbidden_modules = ["app.core", "app.infrastructure", "app.presentation", "app.modules", "app.bootstrap"]
+
+[tool.mypy]
+python_version = "3.13"
+packages = ["app", "tests"]
+ignore_missing_imports = true
+disallow_untyped_defs = false
+no_implicit_optional = true
+warn_unused_ignores = true
