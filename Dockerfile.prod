@@ -1,0 +1,53 @@
+# syntax=docker/dockerfile:1
+# Production image. Two stages: uv resolves and installs runtime-only
+# dependencies against the lockfile, then a matching python slim image
+# receives just the virtualenv and the application code -- no uv, no
+# dev dependencies, no build context leftovers.
+#
+# Build:  docker build -f Dockerfile.prod -t lighthr-backend .
+# Run:    docker run --rm -p 8000:8000 \
+#             -e DATABASE_URL=postgresql+asyncpg://... \
+#             -e APP_ENV=production -e ALLOWED_HOSTS=example.com \
+#             lighthr-backend
+
+# --- builder -------------------------------------------------------------
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_NO_DEV=1 \
+    UV_PYTHON_DOWNLOADS=0
+
+WORKDIR /app
+
+# Install dependencies before copying source so this layer is cached
+# until the lockfile changes.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project
+
+# --- runtime ------------------------------------------------------------
+# Must be the same distro/version as the builder so /usr/local/bin/python3.13
+# (the interpreter the venv points at) exists at the same path.
+# The project itself is not installed (it has no build backend); the code is
+# copied in below and imported from the working directory.
+FROM python:3.13-slim-bookworm
+
+RUN groupadd --system --gid 999 app \
+    && useradd --system --gid 999 --uid 999 --create-home app
+
+COPY --from=builder --chown=app:app /app/.venv /app/.venv
+COPY --chown=app:app app /app/app
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+USER app
+WORKDIR /app
+EXPOSE 8000
+
+# Deliberately not start.py: reload is a development feature. Configuration
+# comes from the environment (DATABASE_URL is required and has no default).
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -51,6 +51,8 @@ coverage.xml
 .pytest_cache/
 cover/
 .vscode/
+audit.md
+docs/
 
 # Translations
 *.mo
@@ -153,12 +155,17 @@ activemq-data/
 .envrc
 .venv
 env/
-venv/
 ENV/
 env.bak/
+venv/
 venv.bak/
 lighthr-env/
 lighthr-env
+
+# Symlinks into .venv, which break in every fresh clone and disclose the
+# host path layout including the Python patch version.
+.agents/skills/fastapi
+.claude/skills/fastapi
 
 # Spyder project settings
 .spyderproject

@@ -1,0 +1,87 @@
+# Local development stack: PostgreSQL + the application with hot reload.
+# The application runs inside the container via Dockerfile.dev; its source is
+# bind-mounted, so code changes never require a rebuild. The DSN in .env keeps
+# pointing at localhost for host runs -- the app service overrides it to
+# reach the `db` service over the compose network.
+#
+# Credentials and the database name are local-development only. If you change
+# them here, change DATABASE_URL in .env to match -- the two must agree.
+name: light-hr-backend
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: lighthr-postgres
+    restart: unless-stopped
+
+    # POSTGRES_USER also creates the role, and POSTGRES_DB creates the
+    # database owned by it, on first start of an empty volume.
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: light_hrms_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - lighthr_pgdata:/var/lib/postgresql/data
+
+    # Wait on this rather than a fixed sleep, so dependent steps never race
+    # the entrypoint's initialisation. `psql` rather than `pg_isready`, which
+    # reports success even when the named database does not exist, so a
+    # POSTGRES_DB that disagrees with DATABASE_URL fails here instead of at the
+    # first query.
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U app -d light_hrms_db -c 'select 1' > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+    # The stock 10s can cut a checkpoint short on shutdown.
+    stop_grace_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: lighthr-app
+    restart: unless-stopped
+
+    ports:
+      - "8000:8000"
+
+    # .env supplies the base configuration; the DATABASE_URL below wins over
+    # the env_file entry (compose `environment` has precedence), because
+    # inside the compose network the database is the `db` service, not
+    # localhost.
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://app:app@db:5432/light_hrms_db
+
+    volumes:
+      # Live source: edits on the host are visible in the container and
+      # picked up by uvicorn --reload (start.py). No rebuild, ever, for
+      # code changes.
+      - .:/app
+      # The venv lives in a named volume so the container never writes into
+      # (or reads) the host's .venv -- different interpreter paths would
+      # break it. The startup `uv sync` refreshes it when uv.lock changes.
+      - lighthr_app_venv:/app/.venv
+      - lighthr_uvcache:/root/.cache/uv
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  # Pinned name so the volume is shared with, and survives, a container that
+  # was started without Compose.
+  lighthr_pgdata:
+    name: lighthr_pgdata
+  lighthr_app_venv:
+    name: lighthr_app_venv
+  lighthr_uvcache:
+    name: lighthr_uvcache

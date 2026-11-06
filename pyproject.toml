@@ -4,12 +4,23 @@ version = "0.1.0"
 description = "LIGHT HRMS WEB APPLICATION"
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi[standard]>=0.143.0",
-    "structlog>=26.1.0",
+    "asyncpg>=0.32.0,<0.33.0",
+    "fastapi[standard]>=0.143.0,<1.0",
+    "sqlalchemy[asyncio]>=2.1.4,<3.0",
+    "structlog>=26.1.0,<27.0",
+]
+
+[dependency-groups]
+dev = [
+  "import-linter>=2.0,<3.0",
+  "mypy>=1.10,<2.0",
+  "pytest>=9.0.3,<10.0",
+  "pytest-asyncio>=1.0,<2.0",
+  "pytest-cov>=6.0,<7.0",
+  "ruff>=0.8,<1.0",
 ]
 
 [tool.pytest.ini_options]
-pythonpath = ["app"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 
@@ -19,3 +30,32 @@ src = ["app", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.importlinter]
+root_packages = ["app"]
+
+[[tool.importlinter.contracts]]
+name = "domain must not import infrastructure or presentation"
+type = "forbidden"
+source_modules = ["app.domain"]
+forbidden_modules = ["app.infrastructure", "app.presentation"]
+
+[[tool.importlinter.contracts]]
+name = "infrastructure does not import presentation"
+type = "forbidden"
+source_modules = ["app.infrastructure"]
+forbidden_modules = ["app.presentation"]
+
+[[tool.importlinter.contracts]]
+name = "domain depends on stdlib only"
+type = "forbidden"
+source_modules = ["app.domain"]
+forbidden_modules = ["app.core", "app.infrastructure", "app.presentation", "app.modules", "app.bootstrap"]
+
+[tool.mypy]
+python_version = "3.13"
+packages = ["app", "tests"]
+ignore_missing_imports = true
+disallow_untyped_defs = false
+no_implicit_optional = true
+warn_unused_ignores = true
