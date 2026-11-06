@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1
+# Development image. The project source is bind-mounted at runtime (see
+# compose.yml), so code edits are picked up live by uvicorn's --reload and
+# never require a rebuild. The startup command re-runs `uv sync`, so a
+# changed pyproject.toml/uv.lock is applied without a rebuild either --
+# the only reason to rebuild this image is a base-image/tooling upgrade.
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_NO_DEV=1 \
+    UV_PYTHON_DOWNLOADS=0 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/app/.venv/bin:$PATH"
+
+WORKDIR /app
+
+# Dependencies only, before copying any source, so this layer is cached
+# until the lockfile changes.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project
+
+# PYTHONDONTWRITEBYTECODE keeps Python from dropping __pycache__ into the
+# bind-mounted source as root, which would root-own files on the host.
+CMD ["sh", "-c", "uv sync --locked --no-install-project && exec python start.py"]

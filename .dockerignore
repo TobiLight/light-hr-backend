@@ -1,0 +1,21 @@
+# Keep the build context lean and never bake secrets into an image.
+# The dev container bind-mounts the project at runtime, so this file only
+# affects what Dockerfile.prod COPYs (Dockerfile.dev copies nothing but
+# pyproject.toml and uv.lock).
+
+.venv/
+__pycache__/
+*.py[cod]
+.git/
+.gitignore
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.import_linter_cache/
+.coverage
+.env
+.claude/
+.agents/
+docs/
+tests/
+audit.md
